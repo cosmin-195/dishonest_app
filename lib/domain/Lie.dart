@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 
 class Lie {
-  String id;
+  String? id;
   String title;
   String text;
   String truth;
@@ -23,6 +23,7 @@ class Lie {
 enum LieSeverity { mild, normal, severe }
 
 class LieRepository with ChangeNotifier {
+  int current = 0;
   Map<String, Lie> map = Map.fromEntries([
     MapEntry(
         "l1",
@@ -39,7 +40,9 @@ class LieRepository with ChangeNotifier {
   }
 
   void addLie(Lie lie) {
-    map[lie.id] = lie;
+    lie.id = "lie$current";
+    current++;
+    map[lie.id!] = lie;
     notifyListeners();
   }
 
@@ -49,7 +52,7 @@ class LieRepository with ChangeNotifier {
   }
 
   void updateLie(Lie newLie) {
-    map.update(newLie.id, (value) => value = newLie);
+    map.update(newLie.id!, (value) => value = newLie);
     notifyListeners();
   }
 

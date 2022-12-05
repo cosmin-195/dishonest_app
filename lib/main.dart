@@ -8,6 +8,12 @@ void main() {
   runApp(const MyApp());
 }
 
+class Arguments {
+  final String lieToUpdate;
+
+  Arguments(this.lieToUpdate);
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -21,7 +27,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Flutter Demo',
         routes: {
-          'create_screen': (context) => CreateLieScreen(),
+          'create_screen': (context) => CreateLieScreen(lieToUpdate: ""),
           'main_screen': (context) => MyApp(),
         },
         theme: ThemeData(
@@ -67,6 +73,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    String arg = "";
+    Arguments args = Arguments(arg);
+
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -82,6 +91,9 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Consumer<LieRepository>(
         builder: (context, repository, child) {
           List<Lie> list = repository.findAll();
+          repository.findAll().forEach((element) {
+            print(element);
+          });
           return ListView.builder(
             itemCount: list.length,
             itemBuilder: (ctx, i) => LieListItem(list[i]),
@@ -90,7 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () =>
-            {Navigator.pushReplacementNamed(context, CreateLieScreen.id)},
+            {Navigator.pushNamed(context, CreateLieScreen.id, arguments: args)},
         tooltip: 'Add new',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
@@ -105,16 +117,49 @@ class LieListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Future<void> _showDialog() async {
+      return showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Confirmation'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: const <Widget>[
+                  Text('Lie was deleted successfully.'),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Great'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
     final repository = Provider.of<LieRepository>(context);
     return Card(
         child: Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(lie.title),
-        IconButton(onPressed: () {}, icon: Icon(Icons.edit)),
         IconButton(
             onPressed: () {
-              repository.deleteLie(lie.id);
+              Navigator.pushNamed(context, CreateLieScreen.id,
+                  arguments: Arguments((lie.id!)));
+            },
+            icon: Icon(Icons.edit)),
+        IconButton(
+            onPressed: () {
+              repository.deleteLie(lie.id!);
+              _showDialog();
             },
             icon: Icon(Icons.delete_forever)),
       ],
